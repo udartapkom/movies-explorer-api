@@ -19,6 +19,3 @@ Backend для Movie на Node.js (Express).
   
 `npm run dev`  
   
-#### Логи:  
-* Запросы и ответы записываются в файл `logs/request.log`  
-* Ошибки записываются в файл `logs/error.log`  
