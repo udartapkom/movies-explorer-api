@@ -7,13 +7,16 @@ const {
 } = require('../errors/index');
 
 const getMovies = (req, res, next) => {
-  Movie.find({})
+  const { owner } = req.user._id;
+  Movie.find({ owner })
+    .orFail(() => {
+      throw new NotFoundErr('Данные не найдены');
+    })
     .then((data) => res.status(200).send(data))
     .catch(next);
 };
 
 const createMovie = (req, res, next) => {
-  // console.log(req.user._id);
   const {
     country,
     director,
@@ -27,7 +30,6 @@ const createMovie = (req, res, next) => {
     thumbnail,
     movieId,
   } = req.body;
-  // const owner = '604a5846130d8d0a5531480e'; // хардкод нужно убрать
   const owner = req.user._id;
   Movie.create({
     country,

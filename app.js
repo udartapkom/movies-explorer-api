@@ -1,31 +1,36 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
 const cors = require('cors');
+const helmet = require('helmet');
 const routers = require('./routes/index');
 const { requestLogger, errortLogger } = require('./middleware/logger');
+const limiter = require('./utils/rateLimiter');
+const CFG = require('./utils/config');
 
-const { PORT = 3000 } = process.env;
+const { PORT = CFG.PORT, MONGO_URL = CFG.MONGO_URL } = process.env;
 
 const allowedCors = [
-  'http://project-mesto.students.nomoreparties.space/',
-  'https://project-mesto.students.nomoreparties.space/',
-  'https://www.project-mesto.students.nomoreparties.space/',
+  'http://www.myportfolios.ru/',
+  'http://myportfolios.ru/',
+  'https://www.myportfolios.ru/',
+  'https://myportfolios.ru/',
 ];
 
 const app = express();
 
-mongoose.connect('mongodb://localhost:27017/moviedb',
+mongoose.connect(MONGO_URL,
   {
     useNewUrlParser: true,
     useCreateIndex: true,
     useFindAndModify: false,
-    useUnifiedTopology: true, // DeprecationWarning: это рекомендация из консоли
+    useUnifiedTopology: true,
   });
 
 mongoose.connection.on('open', () => console.log('connected to mongoDB'));
 
+app.use(limiter);
+app.use(helmet());
 app.use((req, res, next) => {
   const { origin } = req.headers;
   if (allowedCors.includes(origin)) {
@@ -34,18 +39,12 @@ app.use((req, res, next) => {
   next();
 });
 app.use(cors());
-
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 app.use(requestLogger);
-
 app.use('/', routers);
-
 app.use(errortLogger);
-
 app.use(errors());
-
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
   res.status(statusCode)
