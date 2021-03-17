@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const { ERR_MSG } = require('../utils/constants');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
@@ -10,14 +11,10 @@ const {
   NotFoundErr,
 } = require('../errors/index');
 
-const test = (req, res) => {
-  res.send('достучался!!!');
-};
-
 const createUser = (req, res, next) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
-    throw new BadRequestErr('Переданы некорректные данные');
+    throw new BadRequestErr(ERR_MSG.BAD_REQUEST);
   }
   bcrypt.hash(password, 10)
     .then((hash) => User.create({
@@ -27,15 +24,15 @@ const createUser = (req, res, next) => {
     }))
     .then((user) => {
       User.findById(user._id)
-        .then((data) => res.status(200).send(data));
+        .then((data) => res.send(data));
     })
     .catch((err) => {
       if (err.name === 'MongoError' && err.code === 11000) {
-        throw new ConflictErr('Пользователь с указанным email уже существует');
+        throw new ConflictErr(ERR_MSG.CONFLICT);
       } else if (err.name === 'ValidationError') {
-        throw new BadRequestErr('Переданы некорректные данные');
+        throw new BadRequestErr(ERR_MSG.BAD_REQUEST);
       } else {
-        throw new Error('На сервере произошла ошибка');
+        throw new Error(ERR_MSG.SERVER_ERROR);
       }
     })
     .catch(next);
@@ -46,17 +43,17 @@ const getCurrentUser = (req, res, next) => {
   User.findById(userId)
     .then((data) => {
       if (!data) {
-        throw new NotFoundErr('Пользователь не найден');
+        throw new NotFoundErr(ERR_MSG.NOT_FOUND);
       }
-      res.status(200).send(data);
+      res.send(data);
     })
     .catch((err) => {
       if (err.kind === 'ObjectId' || err.kind === 'CastError') {
-        throw new BadRequestErr('Ошибка получения данных');
+        throw new BadRequestErr(ERR_MSG.BAD_REQUEST);
       } else if (err.statusCode === 404) {
         next(err);
       } else {
-        throw new Error('На сервере произошла ошибка');
+        throw new Error(ERR_MSG.SERVER_ERROR);
       }
     })
     .catch(next);
@@ -66,22 +63,22 @@ const updateUser = (req, res, next) => {
   const id = req.user._id;
   const { name, email } = req.body;
   if (!name || !email) {
-    throw new BadRequestErr('Переданы некорректные данные');
+    throw new BadRequestErr(ERR_MSG.BAD_REQUEST);
   }
   User.findByIdAndUpdate(id, { name, email }, { new: true })
     .then((data) => {
       if (!data) {
-        throw new NotFoundErr('Пользователь не найден');
+        throw new NotFoundErr(ERR_MSG.NOT_FOUND);
       }
-      res.status(200).send(data);
+      res.send(data);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestErr('Переданы некорректные данные'));
+        next(new BadRequestErr(ERR_MSG.BAD_REQUEST));
       } else if (err.statusCode === 404) {
         next(err);
       } else if (err.kind === 'ObjectId' || err.kind === 'CastError') {
-        next(new BadRequestErr('Ошибка получения данных'));
+        next(new BadRequestErr(ERR_MSG.BAD_REQUEST));
       } else {
         next(err);
       }
@@ -105,7 +102,6 @@ const login = (req, res, next) => {
     });
 };
 module.exports = {
-  test,
   createUser,
   getCurrentUser,
   updateUser,

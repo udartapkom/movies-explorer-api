@@ -1,4 +1,5 @@
 const Movie = require('../models/movie');
+const { ERR_MSG } = require('../utils/constants');
 
 const {
   BadRequestErr,
@@ -7,12 +8,12 @@ const {
 } = require('../errors/index');
 
 const getMovies = (req, res, next) => {
-  const { owner } = req.user._id;
+  const owner = req.user._id;
   Movie.find({ owner })
     .orFail(() => {
-      throw new NotFoundErr('Данные не найдены');
+      throw new NotFoundErr(ERR_MSG.NOT_FOUND);
     })
-    .then((data) => res.status(200).send(data))
+    .then((data) => res.send(data))
     .catch(next);
 };
 
@@ -45,10 +46,10 @@ const createMovie = (req, res, next) => {
     nameRU,
     nameEN,
   })
-    .then((movie) => res.status(200).send(movie))
+    .then((movie) => res.send(movie))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        throw new BadRequestErr('Переданы некорректные данные');
+        throw new BadRequestErr(ERR_MSG.BAD_REQUEST);
       } else {
         next(err);
       }
@@ -60,24 +61,19 @@ const deleteMovieById = (req, res, next) => {
   const { movieId } = req.params;
   Movie.findById(movieId)
     .then((movie) => {
-      if (!movie) {
-        throw new NotFoundErr('Данные не найдены');
-      }
-      if (movie.owner.toString() !== req.user._id) {
-        throw new ForbiddenErr('Недостаточно прав');
-      }
-      Movie.findByIdAndRemove(movieId)
-        .then((data) => res.status(200).send(data));
-    })
-    .catch((err) => {
-      if (err.kind === 'ObjectId' || err.kind === 'CastError') {
-        next(new BadRequestErr('Переданы некорректные данные'));
+      if (movie.owner.toString() === req.user._id) {
+        movie.remove()
+          .then(() => res.send(movie))
+          .catch(next);
       } else {
-        next(err);
+        throw new ForbiddenErr(ERR_MSG.FORBIDDEN);
       }
-    });
+    })
+    .catch(() => {
+      throw new NotFoundErr(ERR_MSG.NOT_FOUND);
+    })
+    .catch(next);
 };
-
 module.exports = {
   createMovie,
   deleteMovieById,

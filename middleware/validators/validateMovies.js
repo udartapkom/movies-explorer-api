@@ -18,7 +18,7 @@ const checkCreateMovie = celebrate({
     image: Joi.string().custom(urlValidation).required(),
     trailer: Joi.string().custom(urlValidation).required(),
     thumbnail: Joi.string().custom(urlValidation).required(),
-    owner: Joi.string().hex().length(24).required(),
+    // owner: Joi.string().hex().length(24).required(),
     movieId: Joi.number().required(),
     nameRU: Joi.string().required(),
     nameEN: Joi.string().required(),
@@ -27,7 +27,7 @@ const checkCreateMovie = celebrate({
 
 const checkMoviedId = celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().hex().length(24),
+    movieId: Joi.string().hex().length(24),
   }),
 });
 

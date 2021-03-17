@@ -1,12 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { errors } = require('celebrate');
+const { isCelebrateError } = require('celebrate');
 const cors = require('cors');
 const helmet = require('helmet');
 const routers = require('./routes/index');
 const { requestLogger, errortLogger } = require('./middleware/logger');
 const limiter = require('./utils/rateLimiter');
 const CFG = require('./utils/config');
+const { ERR_MSG } = require('./utils/constants');
 
 const { PORT = CFG.PORT, MONGO_URL = CFG.MONGO_URL } = process.env;
 
@@ -29,6 +30,8 @@ mongoose.connect(MONGO_URL,
 
 mongoose.connection.on('open', () => console.log('connected to mongoDB'));
 
+app.use(requestLogger);
+app.use(errortLogger);
 app.use(limiter);
 app.use(helmet());
 app.use((req, res, next) => {
@@ -41,14 +44,15 @@ app.use((req, res, next) => {
 app.use(cors());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(requestLogger);
 app.use('/', routers);
-app.use(errortLogger);
-app.use(errors());
+
 app.use((err, req, res, next) => {
+  if (isCelebrateError(err)) {
+    res.status(400).send({ message: ERR_MSG.VALIDATION_ERR });
+  }
   const { statusCode = 500, message } = err;
   res.status(statusCode)
-    .send({ message: statusCode === 500 ? 'На сервере произошла ошибка' : message });
+    .send({ message: statusCode === 500 ? ERR_MSG.SERVER_ERROR : message });
   next();
 });
 
