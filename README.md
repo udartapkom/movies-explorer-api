@@ -15,7 +15,7 @@
 * Центральная обработка ошибок
 * Валидация входящих данных
 ## Установка и запуск проекта:
-Клонировать репозиторий: git clone https://github.com/Andryuha-Nikolaev/movies-explorer-api.git
+Клонировать репозиторий: git clone [https://github.com/udartapkom/movies-explorer-api.git](https://github.com/udartapkom/movies-explorer-api.git)
 
 Установить зависимости: npm install
 
