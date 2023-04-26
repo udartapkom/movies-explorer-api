@@ -1,21 +1,24 @@
-### movies-explorer-api
-Репозиторий для бэкенда movies
-### Movie API 
+# API для дипломного проекта для Яндекс.Практикум
+## Технологии:
+- NodeJS
+- Express
+- MongoDB
+- Mongoose
+## Функционал:
+* Регистрация
+* Авторизация
+* Обновление данных пользователя
+* Получение информации о текущем пользователе
+* Получение списка фильмов
+* Создание фильма
+* Удаление фильма
+* Центральная обработка ошибок
+* Валидация входящих данных
+## Установка и запуск проекта:
+Клонировать репозиторий: git clone https://github.com/Andryuha-Nikolaev/movies-explorer-api.git
 
-Backend для Movie на Node.js (Express).
-* API доступно по: [`https://api.myportfolios.ru/`]  
-или [`https://www.api.myportfolios.ru`]  
-#### Скрипты:  
-  
-#### Установить зависимости  
-  
-`npm install`
-  
-##### Запустить приложение:  
-  
-`npm run start`  
-  
-##### Запустить приложение c hot-reload (nodemon):  
-  
-`npm run dev`  
-  
+Установить зависимости: npm install
+
+Запустить сервер: npm run start
+
+Запустить сервер с hot-reload: npm run dev
